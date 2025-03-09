@@ -1,14 +1,14 @@
 # AI-Powered-Skin-Cancer-Detection
-📌 Project Overview
+📌 Project Overview :
 This project focuses on developing an AI-based skin cancer detection system using deep learning techniques. The system is designed to analyze dermoscopic images and classify them as benign or malignant with high accuracy. The goal is to assist dermatologists and general users in early detection, improving patient outcomes, and making skin cancer diagnosis more accessible, particularly in resource-limited settings.
 
-🚀 Features
--Automated Diagnosis: Uses deep learning to classify skin lesions.
--Real-time Classification: Provides instant results upon image upload. 
--Vision Transformer (ViT) Model: A state-of-the-art transformer-based architecture for image analysis.
--Explainability with Grad-CAM: Highlights critical areas in an image for better interpretability.
--User-Friendly Interface: Accessible via a web or mobile application.
--Cloud Deployment: Ensures scalability and reliability.
+🚀 Features :
+1) Automated Diagnosis: Uses deep learning to classify skin lesions.
+2) Real-time Classification: Provides instant results upon image upload. 
+3) Vision Transformer (ViT) Model: A state-of-the-art transformer-based architecture for image analysis.
+4) Explainability with Grad-CAM: Highlights critical areas in an image for better interpretability.
+5) User-Friendly Interface: Accessible via a web or mobile application.
+6) Cloud Deployment: Ensures scalability and reliability.
 
 📊 Technologies Used
 -Frontend: React, HTML/CSS
