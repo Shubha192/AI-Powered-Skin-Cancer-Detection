@@ -11,14 +11,14 @@ This project focuses on developing an AI-based skin cancer detection system usin
 6) Cloud Deployment: Ensures scalability and reliability.
 
 📊 Technologies Used
--Frontend: React, HTML/CSS
--Backend: Flask
--AI Model: Vision Transformer (ViT) using TensorFlow/PyTorch
--Preprocessing: OpenCV, PIL, Scikit-Image
--Deployment: Cloud-based hosting
+1) Frontend: React, HTML/CSS
+2) Backend: Flask
+3) AI Model: Vision Transformer (ViT) using TensorFlow/PyTorch
+4) Preprocessing: OpenCV, PIL, Scikit-Image
+5) Deployment: Cloud-based hosting
 
 🔍 How It Works
--User Uploads an Image: A dermoscopic image of the skin lesion is uploaded.
--Image Preprocessing: The image is resized, normalized, and cleaned.
--AI Model Prediction: The ViT model classifies the lesion as normal, benign, or malignant.
--Results Displayed: The result is presented along with a confidence score and heatmap visualization (Grad-CAM).
+1) User Uploads an Image: A dermoscopic image of the skin lesion is uploaded.
+2) Image Preprocessing: The image is resized, normalized, and cleaned.
+3) AI Model Prediction: The ViT model classifies the lesion as normal, benign, or malignant.
+4) Results Displayed: The result is presented along with a confidence score and heatmap visualization (Grad-CAM).
