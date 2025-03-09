@@ -4,7 +4,7 @@ This project focuses on developing an AI-based skin cancer detection system usin
 
 🚀 Features
 -Automated Diagnosis: Uses deep learning to classify skin lesions.
--Real-time Classification: Provides instant results upon image upload.
+-Real-time Classification: Provides instant results upon image upload. 
 -Vision Transformer (ViT) Model: A state-of-the-art transformer-based architecture for image analysis.
 -Explainability with Grad-CAM: Highlights critical areas in an image for better interpretability.
 -User-Friendly Interface: Accessible via a web or mobile application.
