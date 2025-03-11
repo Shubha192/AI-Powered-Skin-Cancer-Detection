@@ -1,0 +1,124 @@
+import React, { useState } from 'react';
+import './App.css';
+
+function App() {
+  const [activeSection, setActiveSection] = useState('home'); // Tracks the active section
+
+  const renderSection = () => {
+    switch (activeSection) {
+      case 'form':
+        return (
+          <div className="form-section">
+            <h2>Skin Cancer Detection Form</h2>
+            <form>
+              <div className="form-group">
+                <label htmlFor="name">Name:</label>
+                <input type="text" id="name" name="name" required />
+              </div>
+              <div className="form-group">
+                <label htmlFor="age">Age:</label>
+                <input type="number" id="age" name="age" required />
+              </div>
+              <div className="form-group">
+                <label htmlFor="gender">Gender:</label>
+                <select id="gender" name="gender" required>
+                  <option value="" disabled>Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="file">Upload Skin Image:</label>
+                <input type="file" id="file" name="file" accept="image/*" required />
+              </div>
+              <div>
+                <button type="submit" className="submit-btn">Submit</button>
+              </div>
+            </form>
+          </div>
+        );
+      case 'aboutModel':
+        return (
+          <div className="about-section">
+            <h2>About The Model</h2>
+            <p>
+              The Vision Transformer (ViT) is a cutting-edge deep learning model used in this project to detect skin cancer.
+              It uses advanced transformer architecture to analyze images with high accuracy and efficiency.
+            </p>
+            <h3>How ViT Works</h3>
+            <ul>
+              <li><strong>Patch Splitting:</strong> Divides images into smaller patches for analysis.</li>
+              <li><strong>Feature Embedding:</strong> Converts patches into meaningful vectors.</li>
+              <li><strong>Attention Mechanism:</strong> Focuses on key regions of the image for precise detection.</li>
+            </ul>
+            <h3>Key Features</h3>
+            <ul>
+              <li>Highly accurate predictions for skin cancer classification.</li>
+              <li>Fast and efficient processing of high-resolution images.</li>
+              <li>Trained on a large dataset of labeled skin images.</li>
+            </ul>
+            <h3>Model Accuracy</h3>
+            <img src={require('./metrics_bar_chart.png')} alt="Model Accuracy Chart" />
+            <img src={require('./confusion_matrix.png')} alt="Confusion matrix" />
+          </div>
+        );
+      case 'aboutSkinCancer':
+        return (
+          <div className="about-section">
+            <h2>About Skin Cancer</h2>
+            <p>
+              Skin cancer is one of the most common types of cancer worldwide. It occurs when skin cells start growing uncontrollably.
+              It is mainly caused by exposure to ultraviolet (UV) radiation from the sun or tanning beds.
+            </p>
+            <h3>Types of Skin Cancer</h3>
+            <ul>
+              <li><strong>Benign:</strong> Non-cancerous growths that do not spread to other parts of the body.</li>
+              <li><strong>Malignant:</strong> Cancerous growths that can spread if not treated promptly.</li>
+            </ul>
+            <h3>Prevention</h3>
+            <ul>
+              <li>Wear sunscreen and protective clothing.</li>
+              <li>Regularly check your skin for unusual changes.</li>
+              <li>Seek medical advice if you notice suspicious lesions.</li>
+            </ul>
+            <img src={require('./skin_cancer.jpg')} alt="Skin Cancer Image" />
+          </div>
+        );
+      default:
+        return (
+          <section className="hero-section">
+            <img
+              src="https://th.bing.com/th/id/OIP.Jih8UqSJwCsx6m4dD0hpNgAAAA?rs=1&pid=ImgDetMain"
+              alt="Skin Cancer Detection"
+            />
+            <h1>Skin Cancer Detection <span>using ViT model</span></h1>
+            <p>Using AI-powered model for skin cancer detection solves problems.</p>
+            <button
+              className="btn-primary"
+              onClick={() => setActiveSection('form')}
+            >
+              Use Skin Cancer Detection
+            </button>
+          </section>
+        );
+    }
+  };
+
+  return (
+    <div>
+      <header>
+        <nav>
+          <ul>
+            <li><a href="#home" onClick={() => setActiveSection('home')}>Home</a></li>
+            <li><a href="#about-model" onClick={() => setActiveSection('aboutModel')}>About The Model</a></li>
+            <li><a href="#about-skin-cancer" onClick={() => setActiveSection('aboutSkinCancer')}>About Skin Cancer</a></li>
+          </ul>
+        </nav>
+      </header>
+      {renderSection()}
+    </div>
+  );
+}
+
+export default App;
