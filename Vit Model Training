@@ -1,148 +1,108 @@
-import torch
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
-from transformers import ViTForImageClassification, ViTFeatureExtractor
-from sklearn.metrics import classification_report, accuracy_score
-import torch.nn as nn
-import torch.optim as optim
 import os
-from tqdm import tqdm
-
-# Check for GPU
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Using device: {device}")
-
-# Parameters
-batch_size = 16
-num_epochs = 25
-learning_rate = 3e-5
-num_classes = 3  # benign, malignant, normal
-early_stopping_patience = 5
-
-# Dataset paths
-train_dir = r"C:\Users\chira\OneDrive\Desktop\project\dataset\train"  # Path to train folder
-test_dir = r"C:\Users\chira\OneDrive\Desktop\project\dataset\test"    # Path to test folder
-
-# Data Augmentation and Preprocessing
+import torch
+from torch.utils.data import DataLoader, random_split
+from torchvision import datasets, transforms
+from transformers import ViTForImageClassification
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+data_dir = r"C:\Users\chira\OneDrive\Desktop\MINI PROJECT\Dataset\data"
 train_transform = transforms.Compose([
-    transforms.Resize((224, 224)),
+    transforms.RandomResizedCrop(224),
     transforms.RandomHorizontalFlip(),
-    transforms.RandomRotation(10),
-    transforms.ColorJitter(),
     transforms.ToTensor(),
-    transforms.Normalize([0.5], [0.5])
+    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
 ])
 
 test_transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
-    transforms.Normalize([0.5], [0.5])
+    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
 ])
+dataset = datasets.ImageFolder(data_dir, transform=train_transform)
 
-# Datasets and DataLoaders
-if not os.path.exists(train_dir) or not os.path.exists(test_dir):
-    raise ValueError("Train or Test directory not found. Please check dataset paths.")
+train_size = int(0.7 * len(dataset))
+val_size = int(0.15 * len(dataset))
+test_size = len(dataset) - train_size - val_size
+train_data, val_data, test_data = random_split(dataset, [train_size, val_size, test_size])
 
-train_dataset = datasets.ImageFolder(train_dir, transform=train_transform)
-test_dataset = datasets.ImageFolder(test_dir, transform=test_transform)
+train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
+val_loader = DataLoader(val_data, batch_size=32)
+test_loader = DataLoader(test_data, batch_size=32)
 
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-
-# Model Initialization with 'ignore_mismatched_sizes=True'
 model = ViTForImageClassification.from_pretrained(
-    "google/vit-base-patch16-224", 
-    num_labels=num_classes,
-    ignore_mismatched_sizes=True  # This will allow the mismatch in sizes
+    "google/vit-base-patch16-224-in21k", 
+    num_labels=2  # Binary classification: benign or malignant
 )
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
-# Optimizer and Loss Function
-optimizer = optim.AdamW(model.parameters(), lr=learning_rate)
-criterion = nn.CrossEntropyLoss()
+from torch.optim import AdamW
 
-# Training and Validation Loop
-best_accuracy = 0
-early_stopping_counter = 0
+criterion = torch.nn.CrossEntropyLoss()
+optimizer = AdamW(model.parameters(), lr=2e-5)
 
-print("Starting Training...")
-for epoch in range(num_epochs):
-    print(f"Epoch {epoch+1}/{num_epochs}...")  # Indicate the epoch number
-    model.train()  # Set model to training mode
-    train_loss = 0
+def train_model(model, train_loader, val_loader, criterion, optimizer, device, num_epochs):
+    for epoch in range(num_epochs):
+      
+        model.train()
+        train_loss = 0.0
+        train_preds, train_labels = [], []
+        
+        for images, labels in train_loader:
+            images, labels = images.to(device), labels.to(device)
+            optimizer.zero_grad()
+            outputs = model(pixel_values=images).logits
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            
+            train_loss += loss.item()
+            _, preds = torch.max(outputs, 1)
+            train_preds.extend(preds.cpu().numpy())
+            train_labels.extend(labels.cpu().numpy())
+        
+        train_acc = accuracy_score(train_labels, train_preds)
+        print(f"Epoch {epoch+1}/{num_epochs} - Train Loss: {train_loss/len(train_loader):.4f}, Accuracy: {train_acc:.4f}")
 
-    # Wrap train_loader with tqdm for a progress bar
-    for batch_idx, (inputs, labels) in tqdm(enumerate(train_loader), total=len(train_loader), desc="Training Epoch"):
-        inputs, labels = inputs.to(device), labels.to(device)
+        model.eval()
+        val_loss = 0.0
+        val_preds, val_labels = [], []
+        
+        with torch.no_grad():
+            for images, labels in val_loader:
+                images, labels = images.to(device), labels.to(device)
+                outputs = model(pixel_values=images).logits
+                loss = criterion(outputs, labels)
+                val_loss += loss.item()
+                _, preds = torch.max(outputs, 1)
+                val_preds.extend(preds.cpu().numpy())
+                val_labels.extend(labels.cpu().numpy())
+        
+        val_acc = accuracy_score(val_labels, val_preds)
+        print(f"Validation Loss: {val_loss/len(val_loader):.4f}, Accuracy: {val_acc:.4f}")
 
-        optimizer.zero_grad()
-        outputs = model(pixel_values=inputs).logits
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+num_epochs = 5
+train_model(model, train_loader, val_loader, criterion, optimizer, device, num_epochs)
 
-        train_loss += loss.item()
-
-        if batch_idx % 10 == 0:  # Print every 10 batches
-            print(f"Batch {batch_idx}/{len(train_loader)} - Loss: {loss.item():.4f}")
-
-    train_loss /= len(train_loader)
-    print(f"Epoch {epoch+1}/{num_epochs}, Training Loss: {train_loss:.4f}")
-
-    # Validation
+def evaluate_model(model, test_loader, device):
     model.eval()
-    all_preds = []
-    all_labels = []
+    test_preds, test_labels = [], []
+    
     with torch.no_grad():
-        for batch in test_loader:
-            inputs, labels = batch
-            inputs, labels = inputs.to(device), labels.to(device)
+        for images, labels in test_loader:
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(pixel_values=images).logits
+            _, preds = torch.max(outputs, 1)
+            test_preds.extend(preds.cpu().numpy())
+            test_labels.extend(labels.cpu().numpy())
+    
+    accuracy = accuracy_score(test_labels, test_preds)
+    f1 = f1_score(test_labels, test_preds, average='weighted')
+    precision = precision_score(test_labels, test_preds, average='weighted')
+    recall = recall_score(test_labels, test_preds, average='weighted')
+    
+    print(f"Test Accuracy: {accuracy:.4f}, F1 Score: {f1:.4f}, Precision: {precision:.4f}, Recall: {recall:.4f}")
 
-            outputs = model(pixel_values=inputs).logits
-            preds = torch.argmax(outputs, dim=1)
+evaluate_model(model, test_loader, device)
 
-            all_preds.extend(preds.cpu().numpy())
-            all_labels.extend(labels.cpu().numpy())
-
-    accuracy = accuracy_score(all_labels, all_preds)
-    print(f"Validation Accuracy: {accuracy:.4f}")
-
-    # Save Best Model
-    if accuracy > best_accuracy:
-        best_accuracy = accuracy
-        early_stopping_counter = 0
-        torch.save(model.state_dict(), "best_model.pth")
-        print(f"New best model saved with accuracy: {accuracy:.4f}")
-    else:
-        early_stopping_counter += 1
-
-    # Early Stopping
-    if early_stopping_counter >= early_stopping_patience:
-        print("Early stopping triggered.")
-        break
-
-# Load Best Model for Testing
-model.load_state_dict(torch.load("best_model.pth"))
-
-# Testing
-model.eval()
-test_preds = []
-test_labels = []
-with torch.no_grad():
-    for batch in test_loader:
-        inputs, labels = batch
-        inputs, labels = inputs.to(device), labels.to(device)
-
-        outputs = model(pixel_values=inputs).logits
-        preds = torch.argmax(outputs, dim=1)
-
-        test_preds.extend(preds.cpu().numpy())
-        test_labels.extend(labels.cpu().numpy())
-
-# Classification Report
-print("\nClassification Report:")
-print(classification_report(test_labels, test_preds, target_names=train_dataset.classes))
-
-# Final Accuracy
-final_accuracy = accuracy_score(test_labels, test_preds)
-print(f"Final Test Accuracy: {final_accuracy:.4f}")
+model.save_pretrained("vit_skin_cancer_model")
